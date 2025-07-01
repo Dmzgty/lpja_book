@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Histórias Interativas</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      padding: 15px;
+      margin: 0;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 22px;
+      margin-bottom: 20px;
+    }
+
+    button {
+      display: block;
+      width: 100%;
+      max-width: 300px;
+      margin: 10px auto;
+      padding: 14px;
+      font-size: 16px;
+      border: none;
+      border-radius: 12px;
+      background-color: #4CAF50;
+      color: white;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    .historia {
+      background: white;
+      border-radius: 14px;
+      padding: 18px;
+      margin-top: 25px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      text-align: left;
+    }
+
+    img {
+      width: 100%;
+      max-height: 250px;
+      object-fit: cover;
+      border-radius: 10px;
+      margin-bottom: 12px;
+    }
+
+    .texto {
+      white-space: pre-wrap;
+      font-size: 16px;
+      color: #333;
+      line-height: 1.5;
+    }
+
+    .comentarios {
+      margin-top: 20px;
+    }
+
+    .comentarios h3 {
+      margin-bottom: 10px;
+    }
+
+    .comentario {
+      background: #eee;
+      padding: 10px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
+
+    textarea {
+      width: 100%;
+      max-width: 100%;
+      height: 80px;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      margin-bottom: 10px;
+      resize: none;
+      font-size: 15px;
+    }
+
+    .btn-comentar {
+      background-color: #007BFF;
+      padding: 10px;
+      font-size: 15px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Escolha uma História</h1>
+  <button onclick="mostrarHistoria('historia1')">🌲 O Mistério da Floresta</button>
+  <button onclick="mostrarHistoria('historia2')">⏳ A Máquina do Tempo</button>
+
+  <div id="exibicao" class="historia" style="display: none;"></div>
+
+  <script>
+    const historias = {
+      historia1: {
+        titulo: "O Mistério da Floresta",
+        imagem: "https://i.imgur.com/9bZ5S4V.jpg",
+        texto: `Em uma floresta densa e esquecida pelo tempo, sons estranhos ecoavam entre as árvores...
+Era noite e ninguém ousava entrar. Mas algo estava prestes a acontecer...`
+      },
+      historia2: {
+        titulo: "A Máquina do Tempo",
+        imagem: "https://i.imgur.com/w1XHtC6.jpg",
+        texto: `Lucas descobriu uma máquina velha no porão do avô.
+Ao ligá-la, tudo mudou. Ele viu datas piscando e lugares desconhecidos surgindo na tela...`
+      }
+    };
+
+    function mostrarHistoria(id) {
+      const historia = historias[id];
+      if (!historia) return;
+
+      const exibicao = document.getElementById("exibicao");
+      exibicao.style.display = "block";
+      exibicao.innerHTML = `
+        <h2>${historia.titulo}</h2>
+        <img src="${historia.imagem}" alt="Imagem da história">
+        <div class="texto">${historia.texto}</div>
+
+        <div class="comentarios">
+          <h3>Comentários:</h3>
+          <div id="lista-comentarios"></div>
+
+          <textarea id="comentario-input" placeholder="Escreva seu comentário..."></textarea>
+          <button class="btn-comentar" onclick="adicionarComentario('${id}')">Enviar Comentário</button>
+        </div>
+      `;
+
+      carregarComentarios(id);
+      exibicao.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function adicionarComentario(historiaId) {
+      const input = document.getElementById("comentario-input");
+      const texto = input.value.trim();
+      if (texto === "") return;
+
+      let comentarios = JSON.parse(localStorage.getItem("comentarios_" + historiaId)) || [];
+      comentarios.push(texto);
+      localStorage.setItem("comentarios_" + historiaId, JSON.stringify(comentarios));
+
+      input.value = "";
+      carregarComentarios(historiaId);
+    }
+
+    function carregarComentarios(historiaId) {
+      const lista = document.getElementById("lista-comentarios");
+      const comentarios = JSON.parse(localStorage.getItem("comentarios_" + historiaId)) || [];
+
+      lista.innerHTML = "";
+      comentarios.forEach(c => {
+        const div = document.createElement("div");
+        div.className = "comentario";
+        div.textContent = c;
+        lista.appendChild(div);
+      });
+    }
+  </script>
+
+</body>
+</html>
