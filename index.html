@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hack do Cofre</title>
+  <style>
+    body {
+      font-family: 'Courier New', monospace;
+      background: #000;
+      color: #0f0;
+      text-align: center;
+      padding: 20px;
+      margin: 0;
+    }
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+    input, button {
+      font-size: 18px;
+      padding: 10px 14px;
+      background: #000;
+      color: #0f0;
+      border: 1px solid #0f0;
+      border-radius: 8px;
+      margin: 10px 5px;
+      width: 90%;
+      max-width: 300px;
+    }
+    button:hover {
+      background: #0f0;
+      color: #000;
+      cursor: pointer;
+    }
+    #log {
+      margin-top: 20px;
+      max-height: 200px;
+      overflow-y: auto;
+      border-top: 1px solid #0f0;
+      padding-top: 10px;
+      font-size: 16px;
+      text-align: left;
+      max-width: 350px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    #game, #victory, #gameover {
+      display: none;
+    }
+    #terminal {
+      white-space: pre-wrap;
+      text-align: left;
+      max-width: 350px;
+      margin: 0 auto 20px;
+      font-size: 16px;
+      min-height: 80px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>💻 Hack do Cofre 💣</h1>
+
+  <div id="start">
+    <p>Digite seu nome para começar:</p>
+    <input type="text" id="playerName" placeholder="Seu nome" />
+    <button onclick="startGame()">Iniciar</button>
+  </div>
+
+  <div id="game">
+    <div id="terminal"></div>
+    <p id="levelDisplay"></p>
+    <p>Vidas restantes: <span id="vidas">3</span></p>
+    <input type="text" id="guess" maxlength="6" placeholder="Digite sua tentativa" autocomplete="off" />
+    <button onclick="checkGuess()">Invadir Cofre</button>
+    <button onclick="reiniciar()">Reiniciar</button>
+    <div id="log"></div>
+  </div>
+
+  <div id="victory">
+    <h2>💥 Parabéns, <span id="vencedor"></span>!</h2>
+    <p>Você invadiu todos os cofres! Missão cumprida.</p>
+    <button onclick="reiniciar()">Jogar de Novo</button>
+  </div>
+
+  <div id="gameover">
+    <h2>❌ Fim de jogo!</h2>
+    <p><span id="derrotado"></span>, você perdeu todas as vidas.</p>
+    <button onclick="reiniciar()">Tentar Novamente</button>
+  </div>
+
+  <!-- Sons embutidos -->
+  <audio id="bip" src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQgAAAA="></audio>
+  <audio id="win" src="data:audio/wav;base64,UklGRhwAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQwAAAA="></audio>
+
+  <script>
+    let level = 1;
+    let vidas = 3;
+    let senha = '';
+    let player = '';
+
+    function startGame() {
+      player = document.getElementById('playerName').value.trim();
+      if (!player) return alert('Digite seu nome!');
+      document.getElementById('start').style.display = 'none';
+      document.getElementById('game').style.display = 'block';
+      escreverTerminal(`🔓 Bem-vindo, ${player}.\n🎯 Missão: Invadir cofres secretos.\n`);
+      iniciarNivel();
+    }
+
+    function escreverTerminal(texto) {
+      const terminal = document.getElementById("terminal");
+      terminal.innerText = '';
+      let i = 0;
+      const intervalo = setInterval(() => {
+        terminal.innerText += texto[i];
+        i++;
+        if (i >= texto.length) clearInterval(intervalo);
+      }, 30);
+    }
+
+    function gerarSenha(tam) {
+      let s = '';
+      while (s.length < tam) {
+        const d = Math.floor(Math.random() * 10);
+        if (!s.includes(d)) s += d;
+      }
+      return s;
+    }
+
+    function iniciarNivel() {
+      senha = gerarSenha(3 + level);
+      document.getElementById("guess").value = '';
+      document.getElementById("log").innerHTML = '';
+      document.getElementById("vidas").innerText = vidas;
+      document.getElementById("levelDisplay").innerText = `🔐 Nível ${level} — Cofre com ${senha.length} dígitos`;
+    }
+
+    function checkGuess() {
+      const palpite = document.getElementById("guess").value.trim();
+      if (palpite.length !== senha.length || isNaN(palpite)) {
+        alert(`Digite exatamente ${senha.length} dígitos.`);
+        return;
+      }
+
+      document.getElementById("bip").play();
+
+      let correta = 0, fora = 0;
+      for (let i = 0; i < senha.length; i++) {
+        if (palpite[i] === senha[i]) correta++;
+        else if (senha.includes(palpite[i])) fora++;
+      }
+
+      const log = document.getElementById("log");
+      const linha = document.createElement("p");
+      linha.textContent = `▶ ${palpite} ➜ ${correta} certo(s), ${fora} fora do lugar`;
+      log.appendChild(linha);
+
+      if (correta === senha.length) {
+        document.getElementById("win").play();
+        level++;
+        if (level > 4) {
+          document.getElementById("game").style.display = "none";
+          document.getElementById("victory").style.display = "block";
+          document.getElementById("vencedor").innerText = player;
+        } else {
+          escreverTerminal(`✅ Cofre ${level - 1} hackeado!\n🔓 Próximo nível...`);
+          setTimeout(iniciarNivel, 2500);
+        }
+      } else {
+        vidas--;
+        document.getElementById("vidas").innerText = vidas;
+        if (vidas <= 0) {
+          document.getElementById("game").style.display = "none";
+          document.getElementById("gameover").style.display = "block";
+          document.getElementById("derrotado").innerText = player;
+        }
+      }
+
+      document.getElementById("guess").value = '';
+      document.getElementById("guess").focus();
+    }
+
+    function reiniciar() {
+      level = 1;
+      vidas = 3;
+      document.getElementById("game").style.display = "block";
+      document.getElementById("victory").style.display = "none";
+      document.getElementById("gameover").style.display = "none";
+      escreverTerminal(`🔄 Reiniciando...\n`);
+      setTimeout(iniciarNivel, 1500);
+    }
+  </script>
+
+</body>
+</html>
